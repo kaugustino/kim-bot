@@ -1,0 +1,7 @@
+[project]
+name = "kim-bot"
+version = "0.1.0"
+description = "rag llm"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
