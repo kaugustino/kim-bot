@@ -15,3 +15,29 @@ RAG is implemented using embedding models, a type of neural network that convert
 And then there are **LLM agents**, which are systems that can interact with APIs and other tools to perform actions. Agents transform simple LLMs into orchestrators. A recent standard for agent interaction with these backend tools is called Model Context Protocol, or MCP. MCP servers act as bridges between LLMs to access and interact with live systems, i.e. real-world tools, APIs, databases, and company data.
 
 Testing out MCP servers sound fun, but I'll save that for another project. This bot will only need a RAG implementation.
+
+## Tools
+
+### Docling
+
+https://docling-project.github.io/docling/concepts/
+
+- Parses multiple document formats, e.g. PDF, DOCX, PPTX, XLSX, HTML, WAV, MP3, VTT, images (PNG, TIFF, JPEG, ...), and more into unified DoclingDocument
+- Plug-and-play integrations with LangChain for agentic AI
+
+### LangChain
+
+https://docs.langchain.com/oss/python/langchain/overview
+https://docs.langchain.com/oss/python/langchain/retrieval
+https://docs.langchain.com/oss/python/langchain/rag
+
+LangChain is an open-source framework with a pre-built agent architecture and integrations used to build agents. LangChain also provides different methods to implement RAG. We are looking for a 2-Step RAG as retrieval always happens before generation. Typically used for documentation bots. High control, fast latency. Simple and predictable.
+
+### Ollama
+
+https://docs.ollama.com
+https://docs.ollama.com/capabilities/embeddings
+https://ollama.com/blog/embedding-models
+https://github.com/ollama/ollama-python
+
+Ollama is an open-source platform that allows users to run large language models locally. It is like what Docker is to images, Ollama is to LLMs. You can interact with Ollama via the CLI or API. Ollama starts up a server and provides a REST API wrapper that your application can use to access cloud or local LLMs. Ollama is a wrapper that allows the application to avoid configuring direct local runtimes. Although LangChain has the capability to run models locally, Ollama provides an optimized runtime that handles the hardware and ease of use.
