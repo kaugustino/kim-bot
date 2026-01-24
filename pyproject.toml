@@ -5,7 +5,15 @@ description = "rag llm"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "docling>=2.68.0",
-    "langchain>=1.2.4",
+    "chromadb>=1.4.1",
+    "docling>=2.70.0",
     "ollama>=0.6.1",
+    "pylibmagic>=0.5.0",
+    "python-magic>=0.4.27",
+    "transformers>=4.57.6",
+]
+
+[dependency-groups]
+dev = [
+    "black>=26.1.0",
 ]
