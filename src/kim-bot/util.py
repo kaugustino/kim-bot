@@ -1,4 +1,3 @@
-import pylibmagic  # needed for libmagic library
 import magic
 from pathlib import Path
 

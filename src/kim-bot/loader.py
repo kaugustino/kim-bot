@@ -51,10 +51,14 @@ def load_external_knowledge_dir(collection: Collection) -> None:
 
 
 def init_collection() -> None:
-    client.delete_collection(name="docs")
-    collection = client.create_collection(name="docs")
+    for collection in client.list_collections():
+        if collection == "docs":
+            client.delete_collection(name="docs")
+            break
+
+    collection = client.get_or_create_collection(name="docs")
     load_external_knowledge_dir(collection=collection)
 
 
 def get_collection() -> Collection:
-    return client.get_collection(name="docs")
+    return client.get_or_create_collection(name="docs")
