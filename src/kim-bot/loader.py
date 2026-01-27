@@ -1,48 +1,37 @@
-import os
-import pylibmagic  # needed for libmagic library
-import magic
-from dotenv import load_dotenv
-from pathlib import Path
-
 import ollama
 import chromadb
-from docling.document_converter import DocumentConverter
+from chromadb import Collection
 from docling.chunking import HybridChunker
+from docling.document_converter import DocumentConverter
+from transformers import AutoTokenizer, logging
 
-load_dotenv()
+from pathlib import Path
+from alive_progress import alive_bar
+
+from config import SOURCE_DIR, EMBEDDINGS_MODEL, TOKENIZER
+from util import is_supported_file_type, get_file_count
+
+logging.set_verbosity_error()
+
 
 client = chromadb.PersistentClient(path="./chroma_db")
-collection = client.create_collection(name="docs")
 
 
-def is_supported_file_type(path: Path) -> Path:
-    # Parse Markdown and code files, PDFs, and images
-    # Ignore other formats, e.g. docx, csv, videos, for now...
-    if path.is_file():
-        file_type = magic.from_file(path, mime=True)
-
-        if (
-            file_type == "application/pdf"
-            or file_type.startswith("image/")
-            or file_type.startswith("text/")
-        ):
-            return True
-
-    return False
-
-
-def embed_and_store_document_chunks(path: Path):
+def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
     converter = DocumentConverter()
     doc = converter.convert(path).document
 
-    chunker = HybridChunker()
+    tokenizer = AutoTokenizer.from_pretrained(TOKENIZER)
+
+    # https://docling-project.github.io/docling/faq/#hybridchunker-triggers-warning-token-indices-sequence-length-is-longer-than-the-specified-maximum-sequence-length-for-this-model
+    chunker = HybridChunker(tokenizer=tokenizer, merge_peers=True)
     chunk_iter = chunker.chunk(dl_doc=doc)
 
     for i, chunk in enumerate(chunk_iter):
         enriched_text = chunker.contextualize(chunk=chunk)
 
         response = ollama.embed(
-            model="mxbai-embed-large",
+            model=EMBEDDINGS_MODEL,
             input=enriched_text,
         )
         embeddings = response["embeddings"]
@@ -52,10 +41,20 @@ def embed_and_store_document_chunks(path: Path):
         )
 
 
-def load_external_knowledge_dir() -> None:
-    source_dir = os.environ.get("EXTERNAL_KNOWLEDGE_DIRECTORY")
+def load_external_knowledge_dir(collection: Collection) -> None:
+    with alive_bar(get_file_count(Path(SOURCE_DIR))) as bar:
+        for path in Path(SOURCE_DIR).rglob("*"):
+            abs_path = path.absolute()
+            if is_supported_file_type(abs_path):
+                embed_and_store_document_chunks(path=abs_path, collection=collection)
+            bar()
 
-    for path in Path(source_dir).rglob("*"):
-        abs_path = path.absolute()
-        if is_supported_file_type(abs_path):
-            embed_and_store_document_chunks(abs_path)
+
+def init_collection() -> None:
+    client.delete_collection(name="docs")
+    collection = client.create_collection(name="docs")
+    load_external_knowledge_dir(collection=collection)
+
+
+def get_collection() -> Collection:
+    return client.get_collection(name="docs")

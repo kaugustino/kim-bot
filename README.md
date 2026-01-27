@@ -89,3 +89,13 @@ The plugin langchain_docling will not be loaded because Docling is being execute
 ```
 Input document main.c with format None does not match any allowed format: (dict_keys([<InputFormat.DOCX: 'docx'>, <InputFormat.PPTX: 'pptx'>, <InputFormat.HTML: 'html'>, <InputFormat.IMAGE: 'image'>, <InputFormat.PDF: 'pdf'>, <InputFormat.ASCIIDOC: 'asciidoc'>, <InputFormat.MD: 'md'>, <InputFormat.CSV: 'csv'>, <InputFormat.XLSX: 'xlsx'>, <InputFormat.XML_USPTO: 'xml_uspto'>, <InputFormat.XML_JATS: 'xml_jats'>, <InputFormat.METS_GBS: 'mets_gbs'>, <InputFormat.JSON_DOCLING: 'json_docling'>, <InputFormat.AUDIO: 'audio'>, <InputFormat.VTT: 'vtt'>]))
 ```
+
+- Tokenization is the process of converting raw text into tokens, which can be words, part of words, or characters; if I don't explicitly define a tokenizer, docling will default to using character based
+- In a RAG / retrieval context, for more controlled chunking it is important to make sure that the chunker and embedding model are using the same tokenizer
+- https://docling-project.github.io/docling/examples/hybrid_chunking/#basic-usage
+- Different embedding models use different tokenizers
+- Ollama does not provide a way to get the tokenizer used with the embeddings model, so I pulled the tokenizer information from the same model in HuggingFace and used that for Docling chunking
+- `transformers` is a HuggingFace Python library
+```
+Token indices sequence length is longer than the specified maximum sequence length for this model (520 > 512). Running this sequence through the model will result in indexing errors
+```
