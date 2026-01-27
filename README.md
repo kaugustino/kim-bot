@@ -99,3 +99,8 @@ Input document main.c with format None does not match any allowed format: (dict_
 ```
 Token indices sequence length is longer than the specified maximum sequence length for this model (520 > 512). Running this sequence through the model will result in indexing errors
 ```
+
+- I need to fix the `handler.py` code and give it better prompts to narrow down the search space for each of the classes
+- I need to organize and seed all my files into Chroma DB
+- Organize the content to make it more digestible without too much data processing
+- Goal is to have a more seamless conversation that is specific to the coursework provided to the LLM by RAG... Need to ideate
