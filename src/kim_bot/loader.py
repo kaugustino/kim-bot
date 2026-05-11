@@ -8,8 +8,8 @@ from transformers import AutoTokenizer, logging
 from pathlib import Path
 from alive_progress import alive_bar
 
-from config import SOURCE_DIR, EMBEDDINGS_MODEL, TOKENIZER
-from util import is_supported_file_type, get_file_count
+from kim_bot.config import SOURCE_DIR, EMBEDDINGS_MODEL, TOKENIZER
+from kim_bot.util import is_supported_file_type, get_file_count
 
 logging.set_verbosity_error()
 

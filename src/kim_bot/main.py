@@ -1,6 +1,6 @@
 import click
-from loader import init_collection
-from handler import introduce_yourself, generate_response
+from kim_bot.loader import init_collection
+from kim_bot.handler import introduce_yourself, generate_response
 
 
 @click.group()

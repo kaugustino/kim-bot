@@ -1,8 +1,8 @@
 from typing import Iterator
 import ollama
 
-from config import EMBEDDINGS_MODEL
-from loader import get_collection
+from kim_bot.config import EMBEDDINGS_MODEL
+from kim_bot.loader import get_collection
 
 
 def capture_stream(output: Iterator[ollama.ChatResponse]) -> str:
