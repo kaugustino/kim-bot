@@ -104,3 +104,10 @@ Token indices sequence length is longer than the specified maximum sequence leng
 - I need to organize and seed all my files into Chroma DB
 - Organize the content to make it more digestible without too much data processing
 - Goal is to have a more seamless conversation that is specific to the coursework provided to the LLM by RAG... Need to ideate
+
+## Updates Again...
+
+- Implemented conversation history to pass into the LLM with each user query
+- Structured output is guaranteed by use of constrained decoding, where the decoding step of token output is contrained by a context-free grammar, which is also used by compilers
+- LLM is stateless thus harnesses must maintain state to manage context, i.e. what gets passed into the LLM
+- Instead of chaining together prompts for RAG to narrow down the search space, have the LLM generate a more specific query from all conversation history to use when querying the vector database
