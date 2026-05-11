@@ -111,3 +111,11 @@ Token indices sequence length is longer than the specified maximum sequence leng
 - Structured output is guaranteed by use of constrained decoding, where the decoding step of token output is contrained by a context-free grammar, which is also used by compilers
 - LLM is stateless thus harnesses must maintain state to manage context, i.e. what gets passed into the LLM
 - Instead of chaining together prompts for RAG to narrow down the search space, have the LLM generate a more specific query from all conversation history to use when querying the vector database
+
+## TO-DOs
+
+- Data needs to be cleaned :C - academic directories contain many different file formats with information scattered everywhere | Could run an agent to create markdown files for summaries and improve overall organization
+- External knowledge base needs to be chunked/organized better
+- Similarity algorithm to retrieve relevant chunks needs work
+- The provided prompts at intermediary steps will do for now
+- Overall, must address these challenges to provide higher quality retrievals
