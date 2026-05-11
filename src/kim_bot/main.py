@@ -10,9 +10,10 @@ def cli():
 
 
 @cli.command()
-def init():
-    """Create the external database for RAG retrieval."""
-    init_collection()
+@click.argument("knowledge_directory", nargs=1, type=click.Path())
+def init(knowledge_directory):
+    """Create the external database for RAG retrieval. Current database will be overwritten."""
+    init_collection(seed=knowledge_directory)
 
 
 @cli.command()

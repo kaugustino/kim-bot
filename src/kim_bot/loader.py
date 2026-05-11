@@ -8,7 +8,7 @@ from transformers import AutoTokenizer, logging
 from pathlib import Path
 from alive_progress import alive_bar
 
-from kim_bot.config import SOURCE_DIR, EMBEDDINGS_MODEL, TOKENIZER
+from kim_bot.config import EMBEDDINGS_MODEL, TOKENIZER
 from kim_bot.util import is_supported_file_type, get_file_count
 
 logging.set_verbosity_error()
@@ -41,23 +41,23 @@ def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
         )
 
 
-def load_external_knowledge_dir(collection: Collection) -> None:
-    with alive_bar(get_file_count(Path(SOURCE_DIR))) as bar:
-        for path in Path(SOURCE_DIR).rglob("*"):
+def load_external_knowledge_dir(collection: Collection, seed_directory: Path) -> None:
+    with alive_bar(get_file_count(seed_directory)) as bar:
+        for path in seed_directory.rglob("*"):
             abs_path = path.absolute()
             if is_supported_file_type(abs_path):
                 embed_and_store_document_chunks(path=abs_path, collection=collection)
             bar()
 
 
-def init_collection() -> None:
+def init_collection(seed: str) -> None:
     for collection in client.list_collections():
         if collection == "docs":
             client.delete_collection(name="docs")
             break
 
     collection = client.get_or_create_collection(name="docs")
-    load_external_knowledge_dir(collection=collection)
+    load_external_knowledge_dir(collection=collection, seed_directory=Path(seed))
 
 
 def get_collection() -> Collection:
