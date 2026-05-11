@@ -20,18 +20,18 @@ def generate_better_query(context: list, user_input: str) -> str:
         "role": OllamaRole.system,
         "content": """You are a query rewriting assistant.
 
-    Your task is to convert the user's latest message into a standalone search query that can be used for retrieval from an external knowledge base.
+        Your task is to convert the user's latest message into a standalone search query that can be used for retrieval from an external knowledge base.
 
-    Use the conversation history for context resolution.
+        Use the conversation history for context resolution.
 
-    Rules:
-    - Preserve the user's actual intent
-    - Replace ambiguous references like "it", "that", "they", or "those"
-    - Include important entities and technical terms
-    - Do NOT answer the question
-    - Do NOT add explanations
-    - Keep the rewritten query concise but specific
-    - If the latest message is already standalone, return it unchanged""",
+        Rules:
+        - Preserve the user's actual intent
+        - Replace ambiguous references like "it", "that", "they", or "those"
+        - Include important entities and technical terms
+        - Do NOT answer the question
+        - Do NOT add explanations
+        - Keep the rewritten query concise but specific
+        - If the latest message is already standalone, return it unchanged""",
     }
 
     task_prompt = {
@@ -52,12 +52,12 @@ def is_rag_required(context: list, query: str) -> bool:
     # Use structure output to determine whether rag needs to be performed
     rag_assistant = {
         "role": OllamaRole.system,
-        "content": "You are a library assistant. You determine whether a query needs additional information from an external database to be answered. If the question can be answered from the given context, respond NO. If the answer needs more information outside the given context, respond YES.",
+        "content": "You are a library assistant. You determine whether a query needs additional information from an external database to be answered. If you want more information to answer the question, respond YES. If you already know the answer, respond NO.",
     }
 
     task_prompt = {
         "role": OllamaRole.user,
-        "content": f"Do you need external data to answer this query: {query}",
+        "content": f'Do you need to reference an external database to retrieve more information for this question: "{query}"?',
     }
 
     output = ollama.chat(
