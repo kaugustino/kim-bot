@@ -1,6 +1,7 @@
 import click
+
 from kim_bot.loader import init_collection
-from kim_bot.handler import introduce_yourself, generate_response
+from kim_bot.handler import OllamaRole, Conversation
 
 
 @click.group()
@@ -17,12 +18,15 @@ def init():
 @cli.command()
 def chat():
     """Interactively chat with kim-bot. Type /bye to exit."""
-    introduce_yourself()
-    click.echo("Let's converse...")
-    user_input = input("\n\n> ")
+    convo = Conversation()
+
+    # Greetings
+    convo.introduce_yourself()
+
+    user_input = input("\n> ")
     while user_input != "/bye":
-        generate_response(user_input=user_input)
-        user_input = input("\n\n> ")
+        convo.generate_response(role=str(OllamaRole.user), user_input=user_input)
+        user_input = input("\n> ")
 
 
 if __name__ == "__main__":

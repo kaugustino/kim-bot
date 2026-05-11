@@ -13,4 +13,5 @@ repos:
     hooks:
     -   id: ruff-check # Run the linter.
         args: [ --fix ]
+        exclude: src/kim_bot/util.py
     -   id: ruff-format # Run the formatter.

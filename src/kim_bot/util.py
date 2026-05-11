@@ -1,3 +1,4 @@
+import pylibmagic  # ships magic libraries, e.g. libmagic - the underlying UNIX `file` library
 import magic
 from pathlib import Path
 
