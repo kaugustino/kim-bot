@@ -1,25 +1,89 @@
+import json
 import ollama
 
-from kim_bot.config import EMBEDDINGS_MODEL
+from kim_bot.config import EMBEDDINGS_MODEL, MODEL
 from kim_bot.loader import get_collection
+from kim_bot.shared import OllamaRole
 
 
-def is_rag_required(content: str) -> bool:
-    # use structure output to determine whether rag needs to be performed
-    return False
+def create_query(history: list, user_input: str) -> str:
+    query = generate_better_query(context=history, user_input=user_input)
+
+    if is_rag_required(context=history, query=query):
+        query = extra_knowledge(query=query)
+
+    return query
 
 
-def create_rag_query(history: list, query: str) -> str:
-    prompt = "Using conversation history, make this query as specific as possible to perform a query into a knowledge database."
+def generate_better_query(context: list, user_input: str) -> str:
+    rewrite_assistant = {
+        "role": OllamaRole.system,
+        "content": """You are a query rewriting assistant.
 
-    # Return response
-    return prompt
+    Your task is to convert the user's latest message into a standalone search query that can be used for retrieval from an external knowledge base.
+
+    Use the conversation history for context resolution.
+
+    Rules:
+    - Preserve the user's actual intent
+    - Replace ambiguous references like "it", "that", "they", or "those"
+    - Include important entities and technical terms
+    - Do NOT answer the question
+    - Do NOT add explanations
+    - Keep the rewritten query concise but specific
+    - If the latest message is already standalone, return it unchanged""",
+    }
+
+    task_prompt = {
+        "role": OllamaRole.user,
+        "content": f"Conversation History: {context}\nLatest User Message: {user_input}\nStandalone Search Query: ",
+    }
+
+    output = ollama.chat(
+        model=MODEL,
+        messages=[rewrite_assistant, task_prompt],
+        stream=False,
+    )
+
+    return output["message"]["content"]
+
+
+def is_rag_required(context: list, query: str) -> bool:
+    # Use structure output to determine whether rag needs to be performed
+    rag_assistant = {
+        "role": OllamaRole.system,
+        "content": "You are a library assistant. You determine whether a query needs additional information from an external database to be answered. If the question can be answered from the given context, respond NO. If the answer needs more information outside the given context, respond YES.",
+    }
+
+    task_prompt = {
+        "role": OllamaRole.user,
+        "content": f"Do you need external data to answer this query: {query}",
+    }
+
+    output = ollama.chat(
+        model=MODEL,
+        messages=[rag_assistant, task_prompt],
+        stream=False,
+        # JSON is based on pydantic and model_json_schema()
+        format={
+            "properties": {
+                "answer": {"enum": ["YES", "NO"], "title": "Answer", "type": "string"}
+            },
+            "required": ["answer"],
+            "title": "YesNoResponse",
+            "type": "object",
+        },
+    )
+
+    answer_dict = json.loads(output["message"]["content"])
+
+    return True if answer_dict["answer"] == "YES" else False
 
 
 def extra_knowledge(query: str) -> str:
     collection = get_collection()
     response = ollama.embed(model=EMBEDDINGS_MODEL, input=query)
-    results = collection.query(query_embeddings=response["embeddings"], n_results=3)
+    results = collection.query(query_embeddings=response["embeddings"], n_results=1)
 
     data = ""
     for res in results["documents"][0]:

@@ -25,7 +25,7 @@ def chat():
 
     user_input = input("\n> ")
     while user_input != "/bye":
-        convo.generate_response(role=str(OllamaRole.user), user_input=user_input)
+        convo.generate_response(role=OllamaRole.user, user_input=user_input)
         user_input = input("\n> ")
 
 
