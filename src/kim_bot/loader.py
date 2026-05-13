@@ -1,27 +1,24 @@
-import ollama
-import chromadb
-from chromadb import Collection
-from docling.chunking import HybridChunker
-from docling.document_converter import DocumentConverter
-from transformers import AutoTokenizer, logging
-
 from pathlib import Path
-from alive_progress import alive_bar
+from chromadb import Collection, PersistentClient
 
-from kim_bot.config import EMBEDDINGS_MODEL, TOKENIZER
+from kim_bot.config import config, db_path
 from kim_bot.util import is_supported_file_type, get_file_count
 
-logging.set_verbosity_error()
 
-
-client = chromadb.PersistentClient(path="./chroma_db")
+db_path.mkdir(parents=True, exist_ok=True)
+client = PersistentClient(path=str(db_path))
 
 
 def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
+    import ollama
+    from docling.chunking import HybridChunker
+    from docling.document_converter import DocumentConverter
+    from transformers import AutoTokenizer
+
     converter = DocumentConverter()
     doc = converter.convert(path).document
 
-    tokenizer = AutoTokenizer.from_pretrained(TOKENIZER)
+    tokenizer = AutoTokenizer.from_pretrained(config["TOKENIZER"])
 
     # https://docling-project.github.io/docling/faq/#hybridchunker-triggers-warning-token-indices-sequence-length-is-longer-than-the-specified-maximum-sequence-length-for-this-model
     chunker = HybridChunker(tokenizer=tokenizer, merge_peers=True)
@@ -31,7 +28,7 @@ def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
         enriched_text = chunker.contextualize(chunk=chunk)
 
         response = ollama.embed(
-            model=EMBEDDINGS_MODEL,
+            model=config["EMBEDDINGS_MODEL"],
             input=enriched_text,
         )
         embeddings = response["embeddings"]
@@ -42,6 +39,8 @@ def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
 
 
 def load_external_knowledge_dir(collection: Collection, seed_directory: Path) -> None:
+    from alive_progress import alive_bar
+
     with alive_bar(get_file_count(seed_directory)) as bar:
         for path in seed_directory.rglob("*"):
             abs_path = path.absolute()

@@ -1,14 +1,14 @@
 from typing import Iterator
 import ollama
 
-from kim_bot.config import MODEL
+from kim_bot.config import config
 from kim_bot.rag import create_query
 from kim_bot.shared import OllamaRole
 
 
 class Conversation:
     def __init__(self):
-        self.model: str = MODEL
+        self.model: str = config["MODEL"]
         self.system_prompt = "You are a concise informational assistant that knows about all the previous classwork taken by Kim at Georgia Tech. You were her study buddy for these classes: Introduction to Information Security in Spring 2021, Graduate Introduction to Operating Systems in Summer 2021, Machine Learning for Trading in Spring 2022, Software Development Process in Fall 2022, Robotics AI Techniques in Spring 2023, Introduction to High Performance Computing in Summer 2023, Information Security Lab Binary Exploitation in Spring 2024 (her favorite class), Computer Networks in Summer 2024, Compilers in Spring 2025, Advanced Operating Systems in Spring 2025, and Introduction to Graduate Algorithms in Fall 2025. Use emojis when applicable. Do not make stuff up."
         self.conversation_history: list[str] = []
 

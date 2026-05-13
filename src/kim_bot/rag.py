@@ -1,7 +1,7 @@
 import json
 import ollama
 
-from kim_bot.config import EMBEDDINGS_MODEL, MODEL
+from kim_bot.config import config
 from kim_bot.loader import get_collection
 from kim_bot.shared import OllamaRole
 
@@ -40,7 +40,7 @@ def generate_better_query(context: list, user_input: str) -> str:
     }
 
     output = ollama.chat(
-        model=MODEL,
+        model=config["MODEL"],
         messages=[rewrite_assistant, task_prompt],
         stream=False,
     )
@@ -61,7 +61,7 @@ def is_rag_required(context: list, query: str) -> bool:
     }
 
     output = ollama.chat(
-        model=MODEL,
+        model=config["MODEL"],
         messages=[rag_assistant, task_prompt],
         stream=False,
         # JSON is based on pydantic and model_json_schema()
@@ -82,7 +82,7 @@ def is_rag_required(context: list, query: str) -> bool:
 
 def extra_knowledge(query: str) -> str:
     collection = get_collection()
-    response = ollama.embed(model=EMBEDDINGS_MODEL, input=query)
+    response = ollama.embed(model=config["EMBEDDINGS_MODEL"], input=query)
     results = collection.query(query_embeddings=response["embeddings"], n_results=1)
 
     data = ""
