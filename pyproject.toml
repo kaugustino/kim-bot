@@ -5,14 +5,15 @@ description = "rag llm"
 readme = "README.md"
 requires-python = ">=3.11.0, <3.12"
 dependencies = [
-    "alive-progress>=3.3.0",
-    "chromadb>=1.4.1",
-    "click>=8.3.1",
-    "docling>=2.70.0",
-    "ollama>=0.6.1",
-    "pylibmagic>=0.5.0",
-    "python-magic>=0.4.27",
-    "transformers>=4.57.6",
+    "alive-progress==3.3.0",
+    "chromadb==1.4.1",
+    "click==8.3.1",
+    "docling==2.70.0",
+    "ollama==0.6.1",
+    "platformdirs==4.5.1",
+    "pylibmagic==0.5.0",
+    "python-magic==0.4.27",
+    "transformers==4.57.6",
 ]
 
 [dependency-groups]

@@ -764,6 +764,7 @@ dependencies = [
     { name = "click" },
     { name = "docling" },
     { name = "ollama" },
+    { name = "platformdirs" },
     { name = "pylibmagic" },
     { name = "python-magic" },
     { name = "transformers" },
@@ -776,14 +777,15 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "alive-progress", specifier = ">=3.3.0" },
-    { name = "chromadb", specifier = ">=1.4.1" },
-    { name = "click", specifier = ">=8.3.1" },
-    { name = "docling", specifier = ">=2.70.0" },
-    { name = "ollama", specifier = ">=0.6.1" },
-    { name = "pylibmagic", specifier = ">=0.5.0" },
-    { name = "python-magic", specifier = ">=0.4.27" },
-    { name = "transformers", specifier = ">=4.57.6" },
+    { name = "alive-progress", specifier = "==3.3.0" },
+    { name = "chromadb", specifier = "==1.4.1" },
+    { name = "click", specifier = "==8.3.1" },
+    { name = "docling", specifier = "==2.70.0" },
+    { name = "ollama", specifier = "==0.6.1" },
+    { name = "platformdirs", specifier = "==4.5.1" },
+    { name = "pylibmagic", specifier = "==0.5.0" },
+    { name = "python-magic", specifier = "==0.4.27" },
+    { name = "transformers", specifier = "==4.57.6" },
 ]
 
 [package.metadata.requires-dev]
