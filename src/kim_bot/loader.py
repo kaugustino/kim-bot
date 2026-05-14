@@ -13,7 +13,9 @@ def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
     import ollama
     from docling.chunking import HybridChunker
     from docling.document_converter import DocumentConverter
-    from transformers import AutoTokenizer
+    from transformers import AutoTokenizer, logging
+
+    logging.set_verbosity_error()
 
     converter = DocumentConverter()
     doc = converter.convert(path).document
@@ -21,6 +23,8 @@ def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
     tokenizer = AutoTokenizer.from_pretrained(config["TOKENIZER"])
 
     # https://docling-project.github.io/docling/faq/#hybridchunker-triggers-warning-token-indices-sequence-length-is-longer-than-the-specified-maximum-sequence-length-for-this-model
+    # "Token indices sequence length is longer than the specified maximum sequence length for this model (520 > 512). Running this sequence through the model will result in indexing errors"
+    # False alarm
     chunker = HybridChunker(tokenizer=tokenizer, merge_peers=True)
     chunk_iter = chunker.chunk(dl_doc=doc)
 

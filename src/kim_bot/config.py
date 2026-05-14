@@ -1,6 +1,10 @@
+import logging
 from pathlib import Path
 from configparser import ConfigParser
 from platformdirs import PlatformDirs
+
+
+logger = logging.getLogger(__name__)
 
 
 dirs = PlatformDirs("kim-bot")
@@ -28,8 +32,8 @@ def get_config() -> dict:
 
             return config["specs"]
         except Exception:
-            print(f"Something is wrong with {config_file}...")
-            print("Using default values...")
+            logger.error(f"Something is wrong with {config_file}...")
+            logger.error("Using default values.")
 
     return DEFAULT["specs"]
 

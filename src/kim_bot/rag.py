@@ -1,16 +1,24 @@
 import json
 import ollama
+import logging
 
 from kim_bot.config import config
 from kim_bot.loader import get_collection
 from kim_bot.shared import OllamaRole
 
 
+logger = logging.getLogger(__name__)
+
+
 def create_query(history: list, user_input: str) -> str:
+    logger.debug(user_input)
+
     query = generate_better_query(context=history, user_input=user_input)
 
     if is_rag_required(context=history, query=query):
         query = extra_knowledge(query=query)
+
+    logger.debug(query)
 
     return query
 
@@ -76,6 +84,9 @@ def is_rag_required(context: list, query: str) -> bool:
     )
 
     answer_dict = json.loads(output["message"]["content"])
+
+    logger.debug(task_prompt)
+    logger.debug(answer_dict)
 
     return True if answer_dict["answer"] == "YES" else False
 
