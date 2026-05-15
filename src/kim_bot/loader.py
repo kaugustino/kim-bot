@@ -1,9 +1,13 @@
 import os
+import logging
 from pathlib import Path
 from chromadb import Collection, PersistentClient
 
 from kim_bot.config import config, db_path
 from kim_bot.util import is_supported_file_type
+
+
+logger = logging.getLogger(__name__)
 
 
 db_path.mkdir(parents=True, exist_ok=True)
@@ -52,10 +56,17 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
                 abs_path = Path(os.path.abspath(os.path.join(root, file)))
                 if is_supported_file_type(abs_path):
                     bar.text = f"Processing: {file}"
-                    embed_and_store_document_chunks(
-                        path=abs_path, collection=collection
-                    )
-                    bar()
+                    try:
+                        embed_and_store_document_chunks(
+                            path=abs_path, collection=collection
+                        )
+                        bar()
+                    except Exception as e:
+                        logger.error(
+                            f"Unable to process {abs_path} due to the following:"
+                        )
+                        logger.error(e)
+                        logger.error("Moving on...")
 
             dirs[:] = [
                 d
