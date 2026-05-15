@@ -32,23 +32,29 @@ def embed_and_store_document_chunks(
     doc = converter.convert(path).document
     chunk_iter = chunker.chunk(dl_doc=doc)
 
+    batch_ids = []
+    batch_text = []
+
     for i, chunk in enumerate(chunk_iter):
         # contextualize() prepends heading/structural context not counted in max_tokens,
         # so hard-truncate to the model's actual context window before embedding.
         enriched_text = chunker.contextualize(chunk=chunk)
 
-        response = ollama.embed(
-            model=config["EMBEDDINGS_MODEL"],
-            input=enriched_text,
-        )
-        embeddings = response["embeddings"]
+        id = f"{path}_{str(i)}"
+        batch_ids.append(id)
+        batch_text.append(enriched_text)
 
-        collection.add(
-            ids=[f"{path}_{str(i)}"], embeddings=embeddings, documents=[enriched_text]
-        )
+    response = ollama.embed(
+        model=config["EMBEDDINGS_MODEL"],
+        input=batch_text,
+    )
+    embeddings = response["embeddings"]
+
+    collection.add(ids=batch_ids, embeddings=embeddings, documents=batch_text)
 
 
 def load_external_knowledge_dir(collection: Collection, seed_directory: Path) -> None:
+    from time import sleep
     from alive_progress import alive_bar
     from docling.document_converter import DocumentConverter
     from docling.chunking import HybridChunker
@@ -70,7 +76,7 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
 
     with alive_bar(dual_line=True) as bar:
         for root, dirs, files in os.walk(seed_directory):
-            for file in files:
+            for i, file in enumerate(files):
                 abs_path = Path(os.path.abspath(os.path.join(root, file)))
                 if is_supported_file_type(abs_path):
                     bar.text = f"Processing: {file}"
@@ -86,6 +92,10 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
                         logger.error(
                             f"Unable to process {abs_path} due to {type(e)}: {e}."
                         )
+
+                # Help pace Ollama server
+                if i % 30 == 0:
+                    sleep(0.5)
 
             dirs[:] = [
                 d
@@ -103,7 +113,7 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
 
 def init_collection(seed: str) -> None:
     for collection in client.list_collections():
-        if collection == "docs":
+        if collection.name == "docs":
             client.delete_collection(name="docs")
             break
 
