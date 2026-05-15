@@ -14,26 +14,27 @@ db_path.mkdir(parents=True, exist_ok=True)
 client = PersistentClient(path=str(db_path))
 
 
-def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
+def get_embed_context_length(model: str) -> int:
     import ollama
-    from docling.chunking import HybridChunker
-    from docling.document_converter import DocumentConverter
-    from transformers import AutoTokenizer, logging
 
-    logging.set_verbosity_error()
+    info = ollama.show(model)
+    for key, value in info.get("model_info", {}).items():
+        if key.endswith(".context_length"):
+            return int(value)
+    return 512
 
-    converter = DocumentConverter()
+
+def embed_and_store_document_chunks(
+    path: Path, collection: Collection, converter: any, chunker: any
+) -> None:
+    import ollama
+
     doc = converter.convert(path).document
-
-    tokenizer = AutoTokenizer.from_pretrained(config["TOKENIZER"])
-
-    # https://docling-project.github.io/docling/faq/#hybridchunker-triggers-warning-token-indices-sequence-length-is-longer-than-the-specified-maximum-sequence-length-for-this-model
-    # "Token indices sequence length is longer than the specified maximum sequence length for this model (520 > 512). Running this sequence through the model will result in indexing errors"
-    # False alarm
-    chunker = HybridChunker(tokenizer=tokenizer, merge_peers=True)
     chunk_iter = chunker.chunk(dl_doc=doc)
 
     for i, chunk in enumerate(chunk_iter):
+        # contextualize() prepends heading/structural context not counted in max_tokens,
+        # so hard-truncate to the model's actual context window before embedding.
         enriched_text = chunker.contextualize(chunk=chunk)
 
         response = ollama.embed(
@@ -49,6 +50,23 @@ def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
 
 def load_external_knowledge_dir(collection: Collection, seed_directory: Path) -> None:
     from alive_progress import alive_bar
+    from docling.document_converter import DocumentConverter
+    from docling.chunking import HybridChunker
+    from transformers import AutoTokenizer, logging
+
+    logging.set_verbosity_error()
+
+    # Avoid start up costs
+    converter = DocumentConverter()
+    tokenizer = AutoTokenizer.from_pretrained(config["TOKENIZER"])
+
+    # https://docling-project.github.io/docling/faq/#hybridchunker-triggers-warning-token-indices-sequence-length-is-longer-than-the-specified-maximum-sequence-length-for-this-model
+    # "Token indices sequence length is longer than the specified maximum sequence length for this model (520 > 512). Running this sequence through the model will result in indexing errors" -> false alarm
+    # Reserve ~25% headroom below the model's actual context window.
+    context_length = get_embed_context_length(config["EMBEDDINGS_MODEL"])
+    chunker = HybridChunker(
+        tokenizer=tokenizer, merge_peers=True, max_tokens=int(context_length * 0.75)
+    )
 
     with alive_bar(dual_line=True) as bar:
         for root, dirs, files in os.walk(seed_directory):
@@ -58,15 +76,16 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
                     bar.text = f"Processing: {file}"
                     try:
                         embed_and_store_document_chunks(
-                            path=abs_path, collection=collection
+                            path=abs_path,
+                            collection=collection,
+                            converter=converter,
+                            chunker=chunker,
                         )
                         bar()
                     except Exception as e:
                         logger.error(
-                            f"Unable to process {abs_path} due to the following:"
+                            f"Unable to process {abs_path} due to {type(e)}: {e}."
                         )
-                        logger.error(e)
-                        logger.error("Moving on...")
 
             dirs[:] = [
                 d
@@ -76,6 +95,8 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
                     or "db" in d.lower()
                     or "ghidra" in d.lower()
                     or "log" in d.lower()
+                    or "test" in d.lower()
+                    or "env" in d.lower()
                 )
             ]
 
