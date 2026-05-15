@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 from chromadb import Collection, PersistentClient
 
 from kim_bot.config import config, db_path
-from kim_bot.util import is_supported_file_type, get_file_count
+from kim_bot.util import is_supported_file_type
 
 
 db_path.mkdir(parents=True, exist_ok=True)
@@ -45,13 +46,27 @@ def embed_and_store_document_chunks(path: Path, collection: Collection) -> None:
 def load_external_knowledge_dir(collection: Collection, seed_directory: Path) -> None:
     from alive_progress import alive_bar
 
-    with alive_bar(get_file_count(seed_directory)) as bar:
-        # .rglob() still traverses hidden directories
-        for path in seed_directory.rglob("*"):
-            abs_path = path.absolute()
-            if is_supported_file_type(abs_path):
-                embed_and_store_document_chunks(path=abs_path, collection=collection)
-                bar()
+    with alive_bar(dual_line=True) as bar:
+        for root, dirs, files in os.walk(seed_directory):
+            for file in files:
+                abs_path = Path(os.path.abspath(os.path.join(root, file)))
+                if is_supported_file_type(abs_path):
+                    bar.text = f"Processing: {file}"
+                    embed_and_store_document_chunks(
+                        path=abs_path, collection=collection
+                    )
+                    bar()
+
+            dirs[:] = [
+                d
+                for d in dirs
+                if not (
+                    d.startswith((".", "~", "__", "_"))
+                    or "db" in d.lower()
+                    or "ghidra" in d.lower()
+                    or "log" in d.lower()
+                )
+            ]
 
 
 def init_collection(seed: str) -> None:

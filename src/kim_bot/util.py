@@ -23,15 +23,6 @@ def is_supported_file_type(path: Path) -> Path:
     return False
 
 
-def get_file_count(dir: Path) -> int:
-    count = 0
-    for path in dir.rglob("*"):
-        abs_path = path.absolute()
-        if is_supported_file_type(abs_path):
-            count += 1
-    return count
-
-
 def create_config_file(embeddings_model: str, tokenizer: str, model: str) -> None:
     config_file.parent.mkdir(parents=True, exist_ok=True)
 
