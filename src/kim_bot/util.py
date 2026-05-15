@@ -6,23 +6,26 @@ from kim_bot.config import config, config_file
 
 
 def is_supported_file_type(path: Path) -> Path:
-    # Parse Markdown and code files, PDFs, and images
-    # Ignore other formats, e.g. docx, csv, videos, for now...
+    # Parse Markdown, PDFs, and images
+    # Ignore other formats, e.g. code, docx, csv, videos, for now...
     if path.is_file():
+        if path.name.startswith("."):
+            return False
+
         file_type = magic.from_file(path, mime=True)
 
-        if (
-            file_type == "application/pdf"
-            or file_type.startswith("image/")
-            or file_type.startswith("text/")
-        ):
+        if file_type in ["application/pdf", "image/png", "image/jpeg", "text/html"]:
             return True
+
+        if file_type == "text/plain" and path.suffix == ".md":
+            return True
+
     return False
 
 
-def get_file_count(path: Path) -> int:
+def get_file_count(dir: Path) -> int:
     count = 0
-    for path in path.rglob("*"):
+    for path in dir.rglob("*"):
         abs_path = path.absolute()
         if is_supported_file_type(abs_path):
             count += 1

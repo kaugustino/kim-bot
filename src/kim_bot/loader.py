@@ -46,11 +46,12 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
     from alive_progress import alive_bar
 
     with alive_bar(get_file_count(seed_directory)) as bar:
+        # .rglob() still traverses hidden directories
         for path in seed_directory.rglob("*"):
             abs_path = path.absolute()
             if is_supported_file_type(abs_path):
                 embed_and_store_document_chunks(path=abs_path, collection=collection)
-            bar()
+                bar()
 
 
 def init_collection(seed: str) -> None:
