@@ -30,6 +30,8 @@ def embed_and_store_document_chunks(
     import ollama
 
     doc = converter.convert(path).document
+
+    # Possible that Docling does not extract any chunks from a given document
     chunk_iter = chunker.chunk(dl_doc=doc)
 
     batch_ids = []
@@ -44,13 +46,14 @@ def embed_and_store_document_chunks(
         batch_ids.append(id)
         batch_text.append(enriched_text)
 
-    response = ollama.embed(
-        model=config["EMBEDDINGS_MODEL"],
-        input=batch_text,
-    )
-    embeddings = response["embeddings"]
+    if batch_text:
+        response = ollama.embed(
+            model=config["EMBEDDINGS_MODEL"],
+            input=batch_text,
+        )
+        embeddings = response["embeddings"]
 
-    collection.add(ids=batch_ids, embeddings=embeddings, documents=batch_text)
+        collection.add(ids=batch_ids, embeddings=embeddings, documents=batch_text)
 
 
 def load_external_knowledge_dir(collection: Collection, seed_directory: Path) -> None:
