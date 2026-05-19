@@ -4,6 +4,36 @@ from pathlib import Path
 
 from kim_bot.config import config, config_file
 
+EXCLUDE_PREFIXES = (".", "~", "__", "_")
+
+EXCLUDE_SUBSTRINGS = [
+    "db",
+    "ghidra",
+    "log",
+    "test",
+    "env",
+    "$",
+    "build",
+    "antlr",
+    "java",
+    "org",
+    "out",
+    "bin",
+]
+
+
+def is_a_bad_dir(dir: str) -> bool:
+    if dir.startswith(EXCLUDE_PREFIXES):
+        return True
+
+    d = dir.lower()
+
+    for substring in EXCLUDE_SUBSTRINGS:
+        if substring in d:
+            return True
+
+    return False
+
 
 def is_supported_file_type(path: Path) -> Path:
     # Parse Markdown, PDFs, and images

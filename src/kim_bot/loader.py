@@ -4,7 +4,7 @@ from pathlib import Path
 from chromadb import Collection, PersistentClient
 
 from kim_bot.config import config, db_path
-from kim_bot.util import is_supported_file_type
+from kim_bot.util import is_supported_file_type, is_a_bad_dir
 
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,9 @@ def embed_and_store_document_chunks(
         batch_text.append(enriched_text)
 
     if batch_text:
+        logger.debug(
+            f"Calling ollama.embed() with {len(batch_text)} batches of size {batch_text.__sizeof__()}."
+        )
         response = ollama.embed(
             model=config["EMBEDDINGS_MODEL"],
             input=batch_text,
@@ -57,7 +60,6 @@ def embed_and_store_document_chunks(
 
 
 def load_external_knowledge_dir(collection: Collection, seed_directory: Path) -> None:
-    from time import sleep
     from alive_progress import alive_bar
     from docling.document_converter import DocumentConverter
     from docling.chunking import HybridChunker
@@ -79,9 +81,18 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
 
     with alive_bar(dual_line=True) as bar:
         for root, dirs, files in os.walk(seed_directory):
+            logger.debug(f"root: {root}")
+
             for i, file in enumerate(files):
                 abs_path = Path(os.path.abspath(os.path.join(root, file)))
+
+                logger.debug(f"File {i + 1}/{len(files)}: {abs_path}")
+
                 if is_supported_file_type(abs_path):
+                    logger.debug(
+                        f"Processing {abs_path} size of {os.path.getsize(abs_path)}."
+                    )
+
                     bar.text = f"Processing: {file}"
                     try:
                         embed_and_store_document_chunks(
@@ -91,27 +102,13 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
                             chunker=chunker,
                         )
                         bar()
+                        bar.text = "Finding a file to process..."
                     except Exception as e:
                         logger.error(
                             f"Unable to process {abs_path} due to {type(e)}: {e}."
                         )
 
-                # Help pace Ollama server
-                if i % 30 == 0:
-                    sleep(0.5)
-
-            dirs[:] = [
-                d
-                for d in dirs
-                if not (
-                    d.startswith((".", "~", "__", "_"))
-                    or "db" in d.lower()
-                    or "ghidra" in d.lower()
-                    or "log" in d.lower()
-                    or "test" in d.lower()
-                    or "env" in d.lower()
-                )
-            ]
+            dirs[:] = [d for d in dirs if not is_a_bad_dir(d)]
 
 
 def init_collection(seed: str) -> None:
