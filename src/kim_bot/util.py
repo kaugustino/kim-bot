@@ -19,6 +19,7 @@ EXCLUDE_SUBSTRINGS = [
     "org",
     "out",
     "bin",
+    "src",
 ]
 
 

@@ -8,6 +8,7 @@ from kim_bot.util import is_supported_file_type, is_a_bad_dir
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(level=logging.INFO)
 
 
 db_path.mkdir(parents=True, exist_ok=True)
@@ -48,8 +49,12 @@ def embed_and_store_document_chunks(
 
     if batch_text:
         logger.debug(
-            f"Calling ollama.embed() with {len(batch_text)} batches of size {batch_text.__sizeof__()}."
+            f"Calling ollama.embed() with {len(batch_text)} batches of size {batch_text.__sizeof__()} bytes."
         )
+
+        for i, text in enumerate(batch_text):
+            logger.debug(f"{i + 1}: {text}")
+
         response = ollama.embed(
             model=config["EMBEDDINGS_MODEL"],
             input=batch_text,
@@ -81,7 +86,7 @@ def load_external_knowledge_dir(collection: Collection, seed_directory: Path) ->
 
     with alive_bar(dual_line=True) as bar:
         for root, dirs, files in os.walk(seed_directory):
-            logger.debug(f"root: {root}")
+            logger.info(f"Processing {root} with {len(files)} files found.")
 
             for i, file in enumerate(files):
                 abs_path = Path(os.path.abspath(os.path.join(root, file)))
