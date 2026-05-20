@@ -14,12 +14,17 @@ EXCLUDE_SUBSTRINGS = [
     "env",
     "$",
     "build",
-    "antlr",
     "java",
     "org",
     "out",
     "bin",
     "src",
+    "vagrant",
+    "subtitles",
+    "CS6200_Lectures",
+    "CS7646_Lectures",
+    "CSE6220_Lectures",
+    "CS6515_Lectures",
 ]
 
 
